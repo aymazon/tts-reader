@@ -320,78 +320,12 @@ select:focus {
   border-color: #2563eb !important;
 }
 
-/* ========== 底部合成栏 ========== */
-.composition-bar {
-  position: sticky;
-  bottom: 0;
-  z-index: 100;
-  background: #fff;
-  border-top: 2px solid #2563eb;
-  border-radius: 12px 12px 0 0;
-  padding: 12px 16px;
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-}
-.composition-text {
-  flex: 1;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  min-height: 1.4em;
-  padding: 8px 12px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  line-height: 1.4;
-  word-break: break-all;
-}
-.composition-text.empty { color: #aaa; font-weight: 400; }
-.composition-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.btn-comp-speak {
-  padding: 12px 20px;
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.btn-comp-speak:active { opacity: 0.7; }
-.btn-comp-speak:disabled { opacity: 0.4; cursor: default; }
-.btn-comp-clear {
-  padding: 12px 16px;
-  background: #e5e5e5;
-  color: #555;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.btn-comp-clear:active { opacity: 0.7; }
-
-.composition-text.speaking {
-  background: #bfdbfe;
-  transition: background 0.3s;
-}
 
 /* ========== 移动端适配 ========== */
 @media (max-width: 480px) {
   .quick-grid.cols-4 { grid-template-columns: 1fr 1fr; }
   .quick-btn { padding: 16px 6px; min-height: 72px; font-size: 1rem; }
   .quick-btn .emoji { font-size: 1.6rem; }
-  .composition-bar { flex-direction: column; align-items: stretch; }
-  .composition-actions { width: 100%; }
-  .btn-comp-speak, .btn-comp-clear { flex: 1; text-align: center; padding: 16px; font-size: 1.1rem; }
   .tab { font-size: 0.9rem; padding: 12px 6px; }
 }
 </style>
@@ -555,14 +489,6 @@ select:focus {
 
 </div>
 
-<!-- ========== 底部合成栏 ========== -->
-<div class="composition-bar" id="compBar">
-  <div class="composition-text empty" id="compText">点击上方按钮快速表达</div>
-  <div class="composition-actions">
-    <button class="btn-comp-speak" id="compSpeak" disabled>🔊 朗读</button>
-    <button class="btn-comp-clear" id="compClear">✕ 清空</button>
-  </div>
-</div>
 
 <script>
 (function () {
@@ -758,12 +684,8 @@ select:focus {
 (function () {
   'use strict';
 
-  var compText = document.getElementById('compText');
-  var compSpeak = document.getElementById('compSpeak');
-  var compClear = document.getElementById('compClear');
-  var compBar = document.getElementById('compBar');
 
-  var state = { groups: {}, lastText: '' };
+  var state = { groups: {} };
 
   function quickSpeak(text) {
     if (!text) return;
@@ -781,78 +703,36 @@ select:focus {
       if (voice) { utter.voice = voice; utter.lang = voice.lang; }
       else { utter.lang = 'zh-CN'; }
     } else { utter.lang = 'zh-CN'; }
-    compText.classList.add('speaking');
-    setTimeout(function () { compText.classList.remove('speaking'); }, 1600);
-    utter.onend = function () { compSpeak.disabled = false; };
-    utter.onerror = function () { compSpeak.disabled = false; };
-    compSpeak.disabled = true;
     synth.speak(utter);
   }
 
-  function updateDisplay(text) {
-    state.lastText = text || '';
-    compText.textContent = text || '点击上方按钮快速表达';
-    compText.classList.toggle('empty', !text);
-    compSpeak.disabled = !text;
-  }
 
-  function clearAll() {
-    state.groups = {};
-    state.lastText = '';
-    updateDisplay('');
-    var sel = document.querySelectorAll('.quick-btn.selected');
-    for (var i = 0; i < sel.length; i++) { sel[i].classList.remove('selected'); }
-    var spk = document.querySelectorAll('.quick-btn.speaking');
-    for (var j = 0; j < spk.length; j++) { spk[j].classList.remove('speaking'); }
-  }
 
-  function composePainSentence() {
-    var loc = state.groups['pain-location'];
-    var lvl = state.groups['pain-level'];
-    if (loc && lvl) return '我的' + loc + lvl;
-    if (loc) return '我的' + loc + '不舒服';
-    if (lvl) return '我' + lvl;
-    return '';
-  }
 
-  function getCompoundSet(groupName) {
-    if (groupName === 'pain-location' || groupName === 'pain-level') return 'pain';
-    return null;
-  }
 
-  function checkAndSpeakCompound(setName) {
-    if (setName === 'pain') {
-      var loc = state.groups['pain-location'];
-      var lvl = state.groups['pain-level'];
-      if (loc && lvl) {
-        var s = composePainSentence();
-        updateDisplay(s);
-        quickSpeak(s);
-        return true;
-      }
-    }
-    return false;
-  }
 
   function handleQuickBtnClick(btn) {
     var container = btn.closest('[data-group]');
     if (!container) return;
     var group = container.dataset.group;
-    var compound = getCompoundSet(group);
-    if (compound) {
+    if (group === 'pain-location' || group === 'pain-level') {
       var siblings = container.querySelectorAll('.quick-btn');
       for (var s = 0; s < siblings.length; s++) { siblings[s].classList.remove('selected'); }
       btn.classList.add('selected');
       state.groups[group] = btn.dataset.value || btn.textContent;
-      updateDisplay(composePainSentence());
-      checkAndSpeakCompound(compound);
+      var loc = state.groups['pain-location'];
+      var lvl = state.groups['pain-level'];
+      var text = '';
+      if (loc && lvl) text = '我的' + loc + lvl;
+      else if (loc) text = '我的' + loc + '不舒服';
+      else if (lvl) text = '我' + lvl;
+      if (text) quickSpeak(text);
       return;
     }
     if (group === 'instant') {
       var text = btn.dataset.text || btn.textContent;
       btn.classList.add('speaking');
       setTimeout(function () { btn.classList.remove('speaking'); }, 800);
-      updateDisplay(text);
       quickSpeak(text);
     }
   }
@@ -882,17 +762,10 @@ select:focus {
     }
   }
 
-  function initCompositionBar() {
-    compSpeak.addEventListener('click', function () {
-      if (state.lastText) quickSpeak(state.lastText);
-    });
-    compClear.addEventListener('click', function () { clearAll(); });
-  }
 
   function init() {
     initTabs();
     initQuickButtons();
-    initCompositionBar();
   }
 
   if (document.readyState === 'loading') {
