@@ -23,30 +23,102 @@ h1 {
   color: #1a1a1a;
 }
 
-/* 输入框 */
-textarea {
-  width: 100%;
-  min-height: 180px;
-  font-size: 1.25rem;
-  line-height: 1.6;
-  padding: 16px;
-  border: 2px solid #ccc;
-  border-radius: 12px;
-  resize: vertical;
-  background: #fff;
-  color: #333;
-  -webkit-appearance: none;
-}
-textarea:focus {
-  border-color: #2563eb;
-  outline: none;
+
+/* ========== 输入行列表 ========== */
+.input-rows-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
 }
 
-.char-count {
-  text-align: right;
-  font-size: 0.9rem;
-  color: #888;
-  margin-top: 4px;
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 8px 12px;
+  min-height: 56px;
+}
+
+.input-row input[type="text"] {
+  flex: 1;
+  font-size: 1.1rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #333;
+  min-width: 0;
+  padding: 4px 0;
+}
+
+.input-row input[type="text"]::placeholder {
+  color: #aaa;
+}
+
+.row-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: opacity 0.15s;
+}
+
+.row-btn:active { opacity: 0.7; }
+
+.row-btn-play {
+  background: #16a34a;
+  color: #fff;
+}
+
+.row-btn-stop {
+  background: #dc2626;
+  color: #fff;
+}
+
+.row-btn-delete {
+  width: 36px;
+  height: 36px;
+  background: #e5e5e5;
+  color: #666;
+  font-size: 1rem;
+  border-radius: 50%;
+}
+
+.add-row-btn {
+  position: sticky;
+  bottom: 16px;
+  width: 100%;
+  padding: 16px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: all 0.15s;
+  text-align: center;
+  z-index: 10;
+  margin-top: 10px;
+}
+
+.add-row-btn:active {
+  background: #f0f0f0;
+  border-color: #2563eb;
+  color: #2563eb;
 }
 
 /* 控制区 */
@@ -120,45 +192,6 @@ select:focus {
   color: #2563eb;
 }
 
-/* 按钮组 */
-.btn-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.btn {
-  font-size: 1.2rem;
-  font-weight: 700;
-  padding: 18px 0;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-.btn:active { opacity: 0.7; }
-
-.btn-play   { background: #16a34a; color: #fff; }
-.btn-pause  { background: #ea580c; color: #fff; }
-.btn-stop   { background: #dc2626; color: #fff; }
-
-.btn-clear {
-  margin-top: 10px;
-  width: 100%;
-  font-size: 1.1rem;
-  font-weight: 600;
-  padding: 14px 0;
-  background: #e5e5e5;
-  color: #555;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-}
-.btn-clear:active { opacity: 0.7; }
-
 /* 状态提示 */
 .status {
   text-align: center;
@@ -168,21 +201,6 @@ select:focus {
   min-height: 1.4em;
 }
 
-/* 进度条 */
-.progress-bar {
-  margin-top: 10px;
-  height: 6px;
-  background: #e5e5e5;
-  border-radius: 3px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: #2563eb;
-  border-radius: 3px;
-  width: 0%;
-  transition: width 0.3s;
-}
 
 /* ========== Tab 导航 ========== */
 .tabs {
@@ -511,11 +529,8 @@ select:focus {
 
 </div>
 
-<!-- ========== 文字输入（原有功能） ========== -->
+<!-- ========== 文字输入 ========== -->
 <div class="tab-content" id="tab-text">
-
-<textarea id="input" placeholder="在这里输入文字..."></textarea>
-<div class="char-count"><span id="charCount">0</span> 字</div>
 
 <div class="controls">
   <label for="voiceSelect">选择声音</label>
@@ -532,15 +547,11 @@ select:focus {
   </div>
 </div>
 
-<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-<div class="status" id="status"></div>
+<!-- 输入行列表 -->
+<div class="input-rows-wrap" id="inputRows"></div>
 
-<div class="btn-group">
-  <button class="btn btn-play" id="btnPlay">▶ 播放</button>
-  <button class="btn btn-pause" id="btnPause">⏸ 暂停</button>
-  <button class="btn btn-stop" id="btnStop">⏹ 停止</button>
-</div>
-<button class="btn-clear" id="btnClear">清空文字</button>
+<!-- 添加行按钮 -->
+<button class="add-row-btn" id="addRowBtn">➕ 添加一行</button>
 
 </div>
 
@@ -557,34 +568,17 @@ select:focus {
 (function () {
   'use strict';
 
-  const CHUNK_SIZE = 200;      // 超过此字符数自动分段
-  const CHUNK_PAUSE = 500;     // 段间暂停 ms
+  var synth = window.speechSynthesis;
 
-  const input     = document.getElementById('input');
-  const charCount = document.getElementById('charCount');
-  const voiceSel  = document.getElementById('voiceSelect');
-  const speedRange= document.getElementById('speedRange');
-  const speedVal  = document.getElementById('speedVal');
-  const status    = document.getElementById('status');
-  const progressFill = document.getElementById('progressFill');
-  const btnPlay   = document.getElementById('btnPlay');
-  const btnPause  = document.getElementById('btnPause');
-  const btnStop   = document.getElementById('btnStop');
-  const btnClear  = document.getElementById('btnClear');
+  var voiceSel = document.getElementById('voiceSelect');
+  var speedRange = document.getElementById('speedRange');
+  var speedVal = document.getElementById('speedVal');
+  var inputRows = document.getElementById('inputRows');
+  var addRowBtn = document.getElementById('addRowBtn');
 
-  const synth = window.speechSynthesis;
-
-  // ---- 状态 ----
-  let chunks       = [];   // 分段后的文本数组
-  let chunkIndex   = 0;    // 当前朗读到第几段
-  let isPaused     = false;
-  let isSpeaking   = false;
-  let pauseTimeout = null;
-
-  // ---- 字数统计 ----
-  input.addEventListener('input', function () {
-    charCount.textContent = input.value.length;
-  });
+  var rows = [];
+  var nextRowId = 1;
+  var currentPlayingId = null;
 
   // ---- 语速 ----
   speedRange.addEventListener('input', function () {
@@ -593,289 +587,169 @@ select:focus {
 
   // ---- 声音列表 ----
   function loadVoices() {
-    const all = synth.getVoices();
-    console.log('TTS Debug: Total voices available:', all.length);
-    console.log('TTS Debug: All voices:', all.map(v => ({
-      name: v.name,
-      lang: v.lang,
-      default: v.default,
-      localService: v.localService,
-      voiceURI: v.voiceURI
-    })));
-
-    // 扩大中文语音匹配范围，支持多种语言代码格式
-    const zhVoices = all.filter(function (v) {
-      const lang = v.lang.toLowerCase();
-      return lang.startsWith('zh') ||
-             lang.includes('chinese') ||
-             lang.includes('cmn') || // 普通话的ISO 639-3代码
-             lang.includes('yue') || // 粤语
-             lang.includes('hak');   // 客家话
+    var all = synth.getVoices();
+    var zhVoices = all.filter(function (v) {
+      var lang = v.lang.toLowerCase();
+      return lang.startsWith('zh') || lang.includes('chinese') ||
+             lang.includes('cmn') || lang.includes('yue') || lang.includes('hak');
     });
-
-    console.log('TTS Debug: Chinese voices found:', zhVoices.length);
-    console.log('TTS Debug: Chinese voices:', zhVoices.map(v => ({
-      name: v.name,
-      lang: v.lang
-    })));
-
     voiceSel.innerHTML = '';
     if (zhVoices.length > 0) {
-      // 有中文语音，优先显示
       zhVoices.forEach(function (v, i) {
-        const opt = document.createElement('option');
+        var opt = document.createElement('option');
         opt.value = all.indexOf(v);
         opt.textContent = v.name + ' (' + v.lang + ')';
         voiceSel.appendChild(opt);
       });
     } else if (all.length > 0) {
-      // 没有中文语音，列出全部并标注语言
-      console.log('TTS Debug: No Chinese voices, listing all voices');
       all.forEach(function (v, i) {
-        const opt = document.createElement('option');
+        var opt = document.createElement('option');
         opt.value = i;
         opt.textContent = v.name + ' (' + v.lang + ')';
         voiceSel.appendChild(opt);
       });
     } else {
-      // 真的没有语音
-      console.log('TTS Debug: No voices available at all');
-      const opt = document.createElement('option');
+      var opt = document.createElement('option');
       opt.textContent = '系统无可用语音';
       voiceSel.appendChild(opt);
-      // 添加调试信息
-      const debugOpt = document.createElement('option');
-      debugOpt.textContent = '请检查系统TTS配置';
-      debugOpt.disabled = true;
-      voiceSel.appendChild(debugOpt);
     }
-    // 恢复 localStorage 或自动选中中文普通话
     var savedURI = localStorage.getItem('tts_voice_uri');
     var restored = false;
     if (savedURI) {
       for (var ri = 0; ri < all.length; ri++) {
-        if (all[ri].voiceURI === savedURI) {
-          voiceSel.value = String(ri);
-          restored = true;
-          break;
-        }
+        if (all[ri].voiceURI === savedURI) { voiceSel.value = String(ri); restored = true; break; }
       }
     }
     if (!restored) {
       for (var ri = 0; ri < all.length; ri++) {
-        if (all[ri].lang.toLowerCase() === 'zh-cn') {
-          voiceSel.value = String(ri);
-          restored = true;
-          break;
-        }
+        if (all[ri].lang.toLowerCase() === 'zh-cn') { voiceSel.value = String(ri); restored = true; break; }
       }
     }
     if (!restored) {
       for (var ri = 0; ri < all.length; ri++) {
-        if (all[ri].lang.toLowerCase().startsWith('zh')) {
-          voiceSel.value = String(ri);
-          break;
-        }
+        if (all[ri].lang.toLowerCase().startsWith('zh')) { voiceSel.value = String(ri); break; }
       }
     }
   }
 
-  // 某些浏览器需要异步加载 voices
-  if (synth.onvoiceschanged !== undefined) {
-    synth.onvoiceschanged = loadVoices;
-    console.log('TTS Debug: Registered onvoiceschanged event');
-  } else {
-    console.log('TTS Debug: onvoiceschanged not supported');
-  }
+  if (synth.onvoiceschanged !== undefined) { synth.onvoiceschanged = loadVoices; }
+  setTimeout(function () { loadVoices(); }, 100);
+  setTimeout(function () { loadVoices(); }, 500);
 
-  // 延迟加载以确保 voices 已加载
-  setTimeout(function() {
-    console.log('TTS Debug: Loading voices after delay...');
-    loadVoices();
-  }, 100);
-
-  // 再次尝试加载
-  setTimeout(function() {
-    console.log('TTS Debug: Second attempt to load voices...');
-    loadVoices();
-  }, 500);
-
-  // ---- 记住用户选择 ----
   voiceSel.addEventListener('change', function () {
     var idx = parseInt(voiceSel.value, 10);
     var voices = synth.getVoices();
     var voice = voices[idx];
-    if (voice) {
-      localStorage.setItem('tts_voice_uri', voice.voiceURI);
-    }
+    if (voice) { localStorage.setItem('tts_voice_uri', voice.voiceURI); }
   });
 
-  // ---- 分段 ----
-  function splitText(text) {
-    text = text.trim();
-    if (text.length === 0) return [];
-
-    // 按自然段落优先分割
-    let paragraphs = text.split(/\n\s*\n/);
-    let result = [];
-
-    paragraphs.forEach(function (para) {
-      para = para.trim();
-      if (para.length === 0) return;
-
-      if (para.length <= CHUNK_SIZE) {
-        result.push(para);
-      } else {
-        // 段落太长，按句子拆分
-        var sentences = para.match(/[^。！？.!?\n]+[。！？.!?\n]?/g) || [para];
-        var buffer = '';
-        sentences.forEach(function (s) {
-          if ((buffer + s).length > CHUNK_SIZE && buffer.length > 0) {
-            result.push(buffer.trim());
-            buffer = '';
-          }
-          buffer += s;
-        });
-        if (buffer.trim().length > 0) result.push(buffer.trim());
-      }
-    });
-
-    return result;
-  }
-
-  // ---- 朗读控制 ----
   function getSelectedVoice() {
     var idx = parseInt(voiceSel.value, 10);
     var voices = synth.getVoices();
     return voices[idx] || null;
   }
 
-  function updateProgress() {
-    if (chunks.length === 0) {
-      progressFill.style.width = '0%';
-      return;
-    }
-    var pct = (chunkIndex / chunks.length) * 100;
-    progressFill.style.width = Math.min(pct, 100) + '%';
+  // ---- 行控制 ----
+  function updateRowButton(id) {
+    var row = rows.find(function (r) { return r.id === id; });
+    if (!row) return;
+    var div = inputRows.querySelector('[data-row-id="' + id + '"]');
+    if (!div) return;
+    var btn = div.querySelector('.row-btn:not(.row-btn-delete)');
+    if (!btn) return;
+    btn.className = 'row-btn ' + (row.isPlaying ? 'row-btn-stop' : 'row-btn-play');
+    btn.textContent = row.isPlaying ? '\u23F9' : '\u25B6';
   }
 
-  function setStatus(msg) {
-    status.textContent = msg;
+  function appendRowEl(row) {
+    var div = document.createElement('div');
+    div.className = 'input-row';
+    div.dataset.rowId = row.id;
+
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.placeholder = '输入文字...';
+    inp.value = row.text;
+    inp.addEventListener('input', function () { row.text = inp.value; });
+
+    var playBtn = document.createElement('button');
+    playBtn.className = 'row-btn row-btn-play';
+    playBtn.textContent = '\u25B6';
+    playBtn.addEventListener('click', function () {
+      if (row.isPlaying) { stopRow(row.id); } else { playRow(row.id); }
+    });
+
+    var delBtn = document.createElement('button');
+    delBtn.className = 'row-btn row-btn-delete';
+    delBtn.textContent = '\uD83D\uDDF1';
+    delBtn.addEventListener('click', function () { deleteRow(row.id); });
+
+    div.appendChild(inp);
+    div.appendChild(playBtn);
+    div.appendChild(delBtn);
+    inputRows.appendChild(div);
   }
 
-  function speakChunk() {
-    if (chunkIndex >= chunks.length) {
-      isSpeaking = false;
-      setStatus('朗读完成');
-      progressFill.style.width = '100%';
-      return;
+  function addRow(text) {
+    text = text || '';
+    var id = nextRowId++;
+    var row = { id: id, text: text, isPlaying: false };
+    rows.push(row);
+    appendRowEl(row);
+  }
+
+  function deleteRow(id) {
+    if (rows.length <= 1) return;
+    if (currentPlayingId === id) { synth.cancel(); currentPlayingId = null; }
+    rows = rows.filter(function (r) { return r.id !== id; });
+    var el = inputRows.querySelector('[data-row-id="' + id + '"]');
+    if (el) el.remove();
+  }
+
+  function playRow(id) {
+    var row = rows.find(function (r) { return r.id === id; });
+    if (!row) return;
+    var text = row.text.trim();
+    if (!text) return;
+
+    if (currentPlayingId !== null) {
+      var prev = rows.find(function (r) { return r.id === currentPlayingId; });
+      if (prev) { prev.isPlaying = false; updateRowButton(prev.id); }
     }
+    synth.cancel();
+    row.isPlaying = true;
+    currentPlayingId = id;
+    updateRowButton(id);
 
-    isSpeaking = true;
-    isPaused = false;
-
-    var utter = new SpeechSynthesisUtterance(chunks[chunkIndex]);
+    var utter = new SpeechSynthesisUtterance(text);
     utter.rate = parseFloat(speedRange.value);
-
     var voice = getSelectedVoice();
-    if (voice) {
-      utter.voice = voice;
-      utter.lang = voice.lang;
-    } else {
-      utter.lang = 'zh-CN';
-    }
-
-    setStatus('正在朗读第 ' + (chunkIndex + 1) + ' / ' + chunks.length + ' 段...');
-    updateProgress();
+    if (voice) { utter.voice = voice; utter.lang = voice.lang; }
+    else { utter.lang = 'zh-CN'; }
 
     utter.onend = function () {
-      chunkIndex++;
-      // 段间暂停
-      if (chunkIndex < chunks.length) {
-        setStatus('暂停中...');
-        pauseTimeout = setTimeout(function () {
-          speakChunk();
-        }, CHUNK_PAUSE);
-      } else {
-        isSpeaking = false;
-        setStatus('朗读完成');
-        progressFill.style.width = '100%';
-      }
+      row.isPlaying = false;
+      currentPlayingId = null;
+      updateRowButton(id);
     };
-
-    utter.onerror = function (e) {
-      if (e.error === 'canceled') return; // 正常停止，忽略
-      setStatus('朗读出错: ' + e.error);
-      isSpeaking = false;
+    utter.onerror = function () {
+      row.isPlaying = false;
+      currentPlayingId = null;
+      updateRowButton(id);
     };
-
     synth.speak(utter);
   }
 
-  // ---- 播放 ----
-  btnPlay.addEventListener('click', function () {
-    var text = input.value.trim();
-    if (!text) {
-      setStatus('请先输入文字');
-      return;
-    }
+  function stopRow(id) {
+    var row = rows.find(function (r) { return r.id === id; });
+    if (!row) return;
+    if (currentPlayingId === id) { synth.cancel(); currentPlayingId = null; }
+    row.isPlaying = false;
+    updateRowButton(id);
+  }
 
-    if (isPaused) {
-      // 从断点继续
-      synth.resume();
-      isPaused = false;
-      setStatus('继续朗读...');
-      return;
-    }
-
-    if (isSpeaking) {
-      // 已经在播放，忽略重复点击
-      return;
-    }
-
-    // 新的朗读任务
-    synth.cancel();
-    chunks = splitText(text);
-    chunkIndex = 0;
-    progressFill.style.width = '0%';
-    speakChunk();
-  });
-
-  // ---- 暂停 ----
-  btnPause.addEventListener('click', function () {
-    if (!isSpeaking || isPaused) return;
-    synth.pause();
-    isPaused = true;
-    clearTimeout(pauseTimeout);
-    setStatus('已暂停，点击"播放"继续');
-  });
-
-  // ---- 停止 ----
-  btnStop.addEventListener('click', function () {
-    synth.cancel();
-    clearTimeout(pauseTimeout);
-    isSpeaking = false;
-    isPaused = false;
-    chunks = [];
-    chunkIndex = 0;
-    progressFill.style.width = '0%';
-    setStatus('已停止');
-  });
-
-  // ---- 清空 ----
-  btnClear.addEventListener('click', function () {
-    synth.cancel();
-    clearTimeout(pauseTimeout);
-    isSpeaking = false;
-    isPaused = false;
-    chunks = [];
-    chunkIndex = 0;
-    input.value = '';
-    charCount.textContent = '0';
-    progressFill.style.width = '0%';
-    setStatus('');
-  });
-
+  addRowBtn.addEventListener('click', function () { addRow(''); });
+  addRow('');
 })();
 
 // =============================================
