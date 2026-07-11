@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>文字朗读</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  min-height: 100dvh;
+  padding: 16px;
+  padding-bottom: 32px;
+}
+
+h1 {
+  font-size: 1.6rem;
+  text-align: center;
+  margin-bottom: 16px;
+  color: #1a1a1a;
+}
+
+/* 输入框 */
+textarea {
+  width: 100%;
+  min-height: 180px;
+  font-size: 1.25rem;
+  line-height: 1.6;
+  padding: 16px;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  resize: vertical;
+  background: #fff;
+  color: #333;
+  -webkit-appearance: none;
+}
+textarea:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.9rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* 控制区 */
+.controls {
+  margin-top: 16px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e5e5e5;
+}
+
+label {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+/* 语音选择 */
+select {
+  width: 100%;
+  font-size: 1.1rem;
+  padding: 14px 12px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  background: #fff;
+  color: #333;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+select:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+/* 语速滑块 */
+.speed-wrap {
+  margin-top: 16px;
+}
+.speed-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.speed-row input[type="range"] {
+  flex: 1;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #ddd;
+  border-radius: 4px;
+  outline: none;
+}
+.speed-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 32px;
+  height: 32px;
+  background: #2563eb;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.speed-val {
+  font-size: 1.2rem;
+  font-weight: 700;
+  min-width: 3ch;
+  text-align: center;
+  color: #2563eb;
+}
+
+/* 按钮组 */
+.btn-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn {
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 18px 0;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.btn:active { opacity: 0.7; }
+
+.btn-play   { background: #16a34a; color: #fff; }
+.btn-pause  { background: #ea580c; color: #fff; }
+.btn-stop   { background: #dc2626; color: #fff; }
+
+.btn-clear {
+  margin-top: 10px;
+  width: 100%;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 14px 0;
+  background: #e5e5e5;
+  color: #555;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.btn-clear:active { opacity: 0.7; }
+
+/* 状态提示 */
+.status {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 1rem;
+  color: #888;
+  min-height: 1.4em;
+}
+
+/* 进度条 */
+.progress-bar {
+  margin-top: 10px;
+  height: 6px;
+  background: #e5e5e5;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.3s;
+}
+</style>
+</head>
+<body>
+
+<h1>📖 文字朗读</h1>
+
+<textarea id="input" placeholder="在这里输入文字..."></textarea>
+<div class="char-count"><span id="charCount">0</span> 字</div>
+
+<div class="controls">
+  <label for="voiceSelect">选择声音</label>
+  <select id="voiceSelect"></select>
+
+  <div class="speed-wrap">
+    <label>朗读速度</label>
+    <div class="speed-row">
+      <span style="font-size:0.95rem;color:#888;">慢</span>
+      <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="1">
+      <span style="font-size:0.95rem;color:#888;">快</span>
+      <span class="speed-val" id="speedVal">1.0</span>
+    </div>
+  </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="status" id="status"></div>
+
+<div class="btn-group">
+  <button class="btn btn-play" id="btnPlay">▶ 播放</button>
+  <button class="btn btn-pause" id="btnPause">⏸ 暂停</button>
+  <button class="btn btn-stop" id="btnStop">⏹ 停止</button>
+</div>
+<button class="btn-clear" id="btnClear">清空文字</button>
+
+<script>
+(function () {
+  'use strict';
+
+  const CHUNK_SIZE = 200;      // 超过此字符数自动分段
+  const CHUNK_PAUSE = 500;     // 段间暂停 ms
+
+  const input     = document.getElementById('input');
+  const charCount = document.getElementById('charCount');
+  const voiceSel  = document.getElementById('voiceSelect');
+  const speedRange= document.getElementById('speedRange');
+  const speedVal  = document.getElementById('speedVal');
+  const status    = document.getElementById('status');
+  const progressFill = document.getElementById('progressFill');
+  const btnPlay   = document.getElementById('btnPlay');
+  const btnPause  = document.getElementById('btnPause');
+  const btnStop   = document.getElementById('btnStop');
+  const btnClear  = document.getElementById('btnClear');
+
+  const synth = window.speechSynthesis;
+
+  // ---- 状态 ----
+  let chunks       = [];   // 分段后的文本数组
+  let chunkIndex   = 0;    // 当前朗读到第几段
+  let isPaused     = false;
+  let isSpeaking   = false;
+  let pauseTimeout = null;
+
+  // ---- 字数统计 ----
+  input.addEventListener('input', function () {
+    charCount.textContent = input.value.length;
+  });
+
+  // ---- 语速 ----
+  speedRange.addEventListener('input', function () {
+    speedVal.textContent = parseFloat(speedRange.value).toFixed(1);
+  });
+
+  // ---- 声音列表 ----
+  function loadVoices() {
+    const all = synth.getVoices();
+    console.log('TTS Debug: Total voices available:', all.length);
+    console.log('TTS Debug: All voices:', all.map(v => ({
+      name: v.name,
+      lang: v.lang,
+      default: v.default,
+      localService: v.localService,
+      voiceURI: v.voiceURI
+    })));
+
+    // 扩大中文语音匹配范围，支持多种语言代码格式
+    const zhVoices = all.filter(function (v) {
+      const lang = v.lang.toLowerCase();
+      return lang.startsWith('zh') ||
+             lang.includes('chinese') ||
+             lang.includes('cmn') || // 普通话的ISO 639-3代码
+             lang.includes('yue') || // 粤语
+             lang.includes('hak');   // 客家话
+    });
+
+    console.log('TTS Debug: Chinese voices found:', zhVoices.length);
+    console.log('TTS Debug: Chinese voices:', zhVoices.map(v => ({
+      name: v.name,
+      lang: v.lang
+    })));
+
+    voiceSel.innerHTML = '';
+    if (zhVoices.length > 0) {
+      // 有中文语音，优先显示
+      zhVoices.forEach(function (v, i) {
+        const opt = document.createElement('option');
+        opt.value = all.indexOf(v);
+        opt.textContent = v.name + ' (' + v.lang + ')';
+        // 优先选中文默认声音
+        if (v.default) opt.selected = true;
+        voiceSel.appendChild(opt);
+      });
+    } else if (all.length > 0) {
+      // 没有中文语音，列出全部并标注语言
+      console.log('TTS Debug: No Chinese voices, listing all voices');
+      all.forEach(function (v, i) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = v.name + ' (' + v.lang + ')';
+        voiceSel.appendChild(opt);
+      });
+    } else {
+      // 真的没有语音
+      console.log('TTS Debug: No voices available at all');
+      const opt = document.createElement('option');
+      opt.textContent = '系统无可用语音';
+      voiceSel.appendChild(opt);
+      // 添加调试信息
+      const debugOpt = document.createElement('option');
+      debugOpt.textContent = '请检查系统TTS配置';
+      debugOpt.disabled = true;
+      voiceSel.appendChild(debugOpt);
+    }
+  }
+
+  // 某些浏览器需要异步加载 voices
+  if (synth.onvoiceschanged !== undefined) {
+    synth.onvoiceschanged = loadVoices;
+    console.log('TTS Debug: Registered onvoiceschanged event');
+  } else {
+    console.log('TTS Debug: onvoiceschanged not supported');
+  }
+
+  // 延迟加载以确保 voices 已加载
+  setTimeout(function() {
+    console.log('TTS Debug: Loading voices after delay...');
+    loadVoices();
+  }, 100);
+
+  // 再次尝试加载
+  setTimeout(function() {
+    console.log('TTS Debug: Second attempt to load voices...');
+    loadVoices();
+  }, 500);
+
+  // ---- 分段 ----
+  function splitText(text) {
+    text = text.trim();
+    if (text.length === 0) return [];
+
+    // 按自然段落优先分割
+    let paragraphs = text.split(/\n\s*\n/);
+    let result = [];
+
+    paragraphs.forEach(function (para) {
+      para = para.trim();
+      if (para.length === 0) return;
+
+      if (para.length <= CHUNK_SIZE) {
+        result.push(para);
+      } else {
+        // 段落太长，按句子拆分
+        var sentences = para.match(/[^。！？.!?\n]+[。！？.!?\n]?/g) || [para];
+        var buffer = '';
+        sentences.forEach(function (s) {
+          if ((buffer + s).length > CHUNK_SIZE && buffer.length > 0) {
+            result.push(buffer.trim());
+            buffer = '';
+          }
+          buffer += s;
+        });
+        if (buffer.trim().length > 0) result.push(buffer.trim());
+      }
+    });
+
+    return result;
+  }
+
+  // ---- 朗读控制 ----
+  function getSelectedVoice() {
+    var idx = parseInt(voiceSel.value, 10);
+    var voices = synth.getVoices();
+    return voices[idx] || null;
+  }
+
+  function updateProgress() {
+    if (chunks.length === 0) {
+      progressFill.style.width = '0%';
+      return;
+    }
+    var pct = (chunkIndex / chunks.length) * 100;
+    progressFill.style.width = Math.min(pct, 100) + '%';
+  }
+
+  function setStatus(msg) {
+    status.textContent = msg;
+  }
+
+  function speakChunk() {
+    if (chunkIndex >= chunks.length) {
+      isSpeaking = false;
+      setStatus('朗读完成');
+      progressFill.style.width = '100%';
+      return;
+    }
+
+    isSpeaking = true;
+    isPaused = false;
+
+    var utter = new SpeechSynthesisUtterance(chunks[chunkIndex]);
+    utter.rate = parseFloat(speedRange.value);
+
+    var voice = getSelectedVoice();
+    if (voice) {
+      utter.voice = voice;
+      utter.lang = voice.lang;
+    } else {
+      utter.lang = 'zh-CN';
+    }
+
+    setStatus('正在朗读第 ' + (chunkIndex + 1) + ' / ' + chunks.length + ' 段...');
+    updateProgress();
+
+    utter.onend = function () {
+      chunkIndex++;
+      // 段间暂停
+      if (chunkIndex < chunks.length) {
+        setStatus('暂停中...');
+        pauseTimeout = setTimeout(function () {
+          speakChunk();
+        }, CHUNK_PAUSE);
+      } else {
+        isSpeaking = false;
+        setStatus('朗读完成');
+        progressFill.style.width = '100%';
+      }
+    };
+
+    utter.onerror = function (e) {
+      if (e.error === 'canceled') return; // 正常停止，忽略
+      setStatus('朗读出错: ' + e.error);
+      isSpeaking = false;
+    };
+
+    synth.speak(utter);
+  }
+
+  // ---- 播放 ----
+  btnPlay.addEventListener('click', function () {
+    var text = input.value.trim();
+    if (!text) {
+      setStatus('请先输入文字');
+      return;
+    }
+
+    if (isPaused) {
+      // 从断点继续
+      synth.resume();
+      isPaused = false;
+      setStatus('继续朗读...');
+      return;
+    }
+
+    if (isSpeaking) {
+      // 已经在播放，忽略重复点击
+      return;
+    }
+
+    // 新的朗读任务
+    synth.cancel();
+    chunks = splitText(text);
+    chunkIndex = 0;
+    progressFill.style.width = '0%';
+    speakChunk();
+  });
+
+  // ---- 暂停 ----
+  btnPause.addEventListener('click', function () {
+    if (!isSpeaking || isPaused) return;
+    synth.pause();
+    isPaused = true;
+    clearTimeout(pauseTimeout);
+    setStatus('已暂停，点击"播放"继续');
+  });
+
+  // ---- 停止 ----
+  btnStop.addEventListener('click', function () {
+    synth.cancel();
+    clearTimeout(pauseTimeout);
+    isSpeaking = false;
+    isPaused = false;
+    chunks = [];
+    chunkIndex = 0;
+    progressFill.style.width = '0%';
+    setStatus('已停止');
+  });
+
+  // ---- 清空 ----
+  btnClear.addEventListener('click', function () {
+    synth.cancel();
+    clearTimeout(pauseTimeout);
+    isSpeaking = false;
+    isPaused = false;
+    chunks = [];
+    chunkIndex = 0;
+    input.value = '';
+    charCount.textContent = '0';
+    progressFill.style.width = '0%';
+    setStatus('');
+  });
+
+})();
+</script>
+</body>
+</html>
