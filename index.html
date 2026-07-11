@@ -763,7 +763,7 @@ select:focus {
     }
   }
 
-  function initTabs() {
+function initTabs() {
     var tabs = document.querySelectorAll('.tab');
     for (var i = 0; i < tabs.length; i++) {
       tabs[i].addEventListener('click', function () {
@@ -779,6 +779,52 @@ select:focus {
         window.speechSynthesis.cancel();
       });
     }
+
+    // ---- 左右滑动切换 Tab ----
+    var _touchStartX = 0;
+    var _touchStartY = 0;
+
+    document.addEventListener('touchstart', function (e) {
+      var touch = e.touches[0];
+      _touchStartX = touch.clientX;
+      _touchStartY = touch.clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', function (e) {
+      if (_touchStartX === 0 && _touchStartY === 0) return;
+      var touch = e.changedTouches[0];
+      var deltaX = touch.clientX - _touchStartX;
+      var deltaY = touch.clientY - _touchStartY;
+
+      // 滑动距离不足 50px 或垂直滑动 → 不切换
+      if (Math.abs(deltaX) < 50 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+        _touchStartX = 0; _touchStartY = 0;
+        return;
+      }
+
+      var activeTab = document.querySelector('.tab.active');
+      if (!activeTab) { _touchStartX = 0; _touchStartY = 0; return; }
+
+      var allTabs = document.querySelectorAll('.tab');
+      var currentIdx = -1;
+      for (var ti = 0; ti < allTabs.length; ti++) {
+        if (allTabs[ti] === activeTab) { currentIdx = ti; break; }
+      }
+      if (currentIdx === -1) { _touchStartX = 0; _touchStartY = 0; return; }
+
+      if (deltaX < 0) {
+        // 向左滑 → 下一个 tab
+        if (currentIdx >= allTabs.length - 1) { _touchStartX = 0; _touchStartY = 0; return; }
+        allTabs[currentIdx + 1].click();
+      } else {
+        // 向右滑 → 上一个 tab
+        if (currentIdx <= 0) { _touchStartX = 0; _touchStartY = 0; return; }
+        allTabs[currentIdx - 1].click();
+      }
+
+      _touchStartX = 0;
+      _touchStartY = 0;
+    }, { passive: true });
   }
 
 
