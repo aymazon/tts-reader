@@ -596,7 +596,7 @@ select:focus {
     inp.type = 'text';
     inp.placeholder = '输入文字...';
     inp.value = row.text;
-    inp.addEventListener('input', function () { row.text = inp.value; });
+    inp.addEventListener('input', function () { row.text = inp.value; saveRows(); });
 
     var playBtn = document.createElement('button');
     playBtn.className = 'row-btn row-btn-play';
@@ -622,7 +622,7 @@ select:focus {
     var row = { id: id, text: text, isPlaying: false };
     rows.push(row);
     appendRowEl(row);
-  }
+    saveRows();
 
   function deleteRow(id) {
     if (rows.length <= 1) return;
@@ -630,7 +630,7 @@ select:focus {
     rows = rows.filter(function (r) { return r.id !== id; });
     var el = inputRows.querySelector('[data-row-id="' + id + '"]');
     if (el) el.remove();
-  }
+    saveRows();
 
   function playRow(id) {
     var row = rows.find(function (r) { return r.id === id; });
@@ -673,9 +673,26 @@ select:focus {
     row.isPlaying = false;
     updateRowButton(id);
   }
-
   addRowBtn.addEventListener('click', function () { addRow(''); });
-  addRow('');
+
+  // ---- localStorage persistence ----
+  function saveRows() {
+    localStorage.setItem('tts_input_rows', JSON.stringify(rows));
+  }
+
+  function loadRows() {
+    var saved = localStorage.getItem('tts_input_rows');
+    if (saved) {
+      try {
+        var data = JSON.parse(saved);
+        data.forEach(function (item) { addRow(item.text || ''); });
+        return;
+      } catch (e) {}
+    }
+    addRow('');
+  }
+
+  loadRows();
 })();
 
 // =============================================
