@@ -626,8 +626,6 @@ select:focus {
         const opt = document.createElement('option');
         opt.value = all.indexOf(v);
         opt.textContent = v.name + ' (' + v.lang + ')';
-        // 优先选中文默认声音
-        if (v.default) opt.selected = true;
         voiceSel.appendChild(opt);
       });
     } else if (all.length > 0) {
@@ -651,6 +649,35 @@ select:focus {
       debugOpt.disabled = true;
       voiceSel.appendChild(debugOpt);
     }
+    // 恢复 localStorage 或自动选中中文普通话
+    var savedURI = localStorage.getItem('tts_voice_uri');
+    var restored = false;
+    if (savedURI) {
+      for (var ri = 0; ri < all.length; ri++) {
+        if (all[ri].voiceURI === savedURI) {
+          voiceSel.value = String(ri);
+          restored = true;
+          break;
+        }
+      }
+    }
+    if (!restored) {
+      for (var ri = 0; ri < all.length; ri++) {
+        if (all[ri].lang.toLowerCase() === 'zh-cn') {
+          voiceSel.value = String(ri);
+          restored = true;
+          break;
+        }
+      }
+    }
+    if (!restored) {
+      for (var ri = 0; ri < all.length; ri++) {
+        if (all[ri].lang.toLowerCase().startsWith('zh')) {
+          voiceSel.value = String(ri);
+          break;
+        }
+      }
+    }
   }
 
   // 某些浏览器需要异步加载 voices
@@ -672,6 +699,16 @@ select:focus {
     console.log('TTS Debug: Second attempt to load voices...');
     loadVoices();
   }, 500);
+
+  // ---- 记住用户选择 ----
+  voiceSel.addEventListener('change', function () {
+    var idx = parseInt(voiceSel.value, 10);
+    var voices = synth.getVoices();
+    var voice = voices[idx];
+    if (voice) {
+      localStorage.setItem('tts_voice_uri', voice.voiceURI);
+    }
+  });
 
   // ---- 分段 ----
   function splitText(text) {
