@@ -623,6 +623,7 @@ select:focus {
     rows.push(row);
     appendRowEl(row);
     saveRows();
+  }
 
   function deleteRow(id) {
     if (rows.length <= 1) return;
@@ -631,6 +632,7 @@ select:focus {
     var el = inputRows.querySelector('[data-row-id="' + id + '"]');
     if (el) el.remove();
     saveRows();
+  }
 
   function playRow(id) {
     var row = rows.find(function (r) { return r.id === id; });
