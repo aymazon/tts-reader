@@ -884,17 +884,43 @@ function initTabs() {
   function playDingDingDing() {
     var ac = getCtx();
     var now = ac.currentTime;
+
+    // 播放一段静音缓冲以唤醒音频输出通道
+    try {
+      var silentBuffer = ac.createBuffer(1, 1, ac.sampleRate);
+      var silentSource = ac.createBufferSource();
+      silentSource.buffer = silentBuffer;
+      silentSource.connect(ac.destination);
+      silentSource.start(now);
+    } catch(e) {}
+
     for (var i = 0; i < 3; i++) {
-      var osc = ac.createOscillator();
-      var gain = ac.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = 1000;
-      gain.gain.setValueAtTime(0.3, now + i * 0.35);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.35 + 0.15);
-      osc.connect(gain);
-      gain.connect(ac.destination);
-      osc.start(now + i * 0.35);
-      osc.stop(now + i * 0.35 + 0.15);
+      var startTime = now + i * 0.2;
+      var duration = 0.15;
+
+      // 主音 - sine 2500Hz，尖锐穿透
+      var osc1 = ac.createOscillator();
+      var gain1 = ac.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.value = 2500;
+      gain1.gain.setValueAtTime(1.0, startTime);
+      gain1.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+      osc1.connect(gain1);
+      gain1.connect(ac.destination);
+      osc1.start(startTime);
+      osc1.stop(startTime + duration);
+
+      // 辅音 - triangle 2500Hz 低音量混合，增强穿透力
+      var osc2 = ac.createOscillator();
+      var gain2 = ac.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.value = 2500;
+      gain2.gain.setValueAtTime(0.4, startTime);
+      gain2.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+      osc2.connect(gain2);
+      gain2.connect(ac.destination);
+      osc2.start(startTime);
+      osc2.stop(startTime + duration);
     }
   }
   var btn = document.getElementById('dingBtn');
