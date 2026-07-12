@@ -328,6 +328,32 @@ select:focus {
   .quick-btn .emoji { font-size: 1.6rem; }
   .tab { font-size: 0.9rem; padding: 12px 6px; }
 }
+
+/* ========== 响铃悬浮按钮 ========== */
+.ding-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(220,38,38,0.4);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: transform 0.15s ease;
+}
+.ding-fab:active {
+  transform: scale(0.85);
+}
 </style>
 </head>
 <body>
@@ -418,6 +444,7 @@ select:focus {
       <button class="quick-btn" data-text="我想漱口"><span class="emoji">🪥</span>我想漱口</button>
       <button class="quick-btn" data-text="我痰多"><span class="emoji">🫁</span>我痰多</button>
       <button class="quick-btn" data-text="我咽不下"><span class="emoji">😣</span>我咽不下</button>
+      <button class="quick-btn" data-text="帮我拍下痰"><span class="emoji">🫁</span>帮我拍下痰</button>
     </div>
   </div>
 </div>
@@ -489,6 +516,9 @@ select:focus {
 
 </div>
 
+
+<!-- 叮叮叮响铃悬浮按钮 -->
+<button class="ding-fab" id="dingBtn">🔔</button>
 
 <script>
 (function () {
@@ -839,6 +869,36 @@ function initTabs() {
     init();
   }
 
+})();
+
+// ---- 叮叮叮响铃 (Web Audio API) ----
+(function() {
+  var AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return;
+  var ctx;
+  function getCtx() {
+    if (!ctx) ctx = new AudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function playDingDingDing() {
+    var ac = getCtx();
+    var now = ac.currentTime;
+    for (var i = 0; i < 3; i++) {
+      var osc = ac.createOscillator();
+      var gain = ac.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 1000;
+      gain.gain.setValueAtTime(0.3, now + i * 0.35);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.35 + 0.15);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now + i * 0.35);
+      osc.stop(now + i * 0.35 + 0.15);
+    }
+  }
+  var btn = document.getElementById('dingBtn');
+  if (btn) btn.addEventListener('click', playDingDingDing);
 })();
 </script>
 </body>
